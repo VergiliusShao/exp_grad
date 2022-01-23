@@ -12,11 +12,11 @@ In order to use Optimisationpy the following software is necessary:
 | Scikit-Learn | For some experiments | https://scikit-learn.org/stable/install.html#installation-instruction |
 
 Running Command
-nohup python experiment_cem.py -d 0 --mode PP > pp.out &
-nohup python experiment_cem.py -d 1 --mode PN > pn.out &
-nohup python experiment_cem.py -d 0 --mode PP --smooth 0.01> pp_zo.out &
-nohup python experiment_cem.py -d 1 --mode PN --smooth 0.01> pn_zo.out &
-nohup python experiment_cem.py -d 0 --mode PP -s True > pp_mtx.out &
-nohup python experiment_cem.py -d 1 --mode PN -s True> pn_mtx.out &
-nohup python experiment_cem.py -d 0 --mode PP -s True --smooth 0.01 > pp_mtx_zo.out &
-nohup python experiment_cem.py -d 1 --mode PN -s True --smooth 0.01> pn_mtx_zo.out &
+# nohup python experiment_cem.py -d 0 --mode PP > pp.out &
+# nohup python experiment_cem.py -d 1 --mode PN > pn.out &
+# nohup python experiment_cem.py -d 0 --mode PP --smooth 0.01> pp_zo.out &
+# nohup python experiment_cem.py -d 1 --mode PN --smooth 0.01> pn_zo.out &
+# nohup python experiment_cem.py -d 0 --mode PP -s True > pp_mtx.out &
+# nohup python experiment_cem.py -d 1 --mode PN -s True> pn_mtx.out &
+# nohup python experiment_cem.py -d 0 --mode PP -s True --smooth 0.01 > pp_mtx_zo.out &
+# nohup python experiment_cem.py -d 1 --mode PN -s True --smooth 0.01> pn_mtx_zo.out &
