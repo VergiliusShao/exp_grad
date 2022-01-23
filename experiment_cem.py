@@ -59,8 +59,8 @@ def main(args):
         zo=True
     if not os.path.exists(result_path):
         os.makedirs(result_path)
-    for alg in [fista]:
-    #for alg in [ao_exp_grad,ao_exp_ftrl,ao_grad,ao_ftrl]:
+    #for alg in [fista]:
+    for alg in [ao_exp_grad,ao_exp_ftrl,ao_grad,ao_ftrl,fista]:
         file_path=data+'_'+mode+'_'+alg.__name__+'_'+str(zo)
         file_path=os.path.join(result_path,file_path)
         if not os.path.exists(file_path):
