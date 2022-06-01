@@ -11,12 +11,17 @@ In order to run the experiments the following software is necessary:
 | Numpy        | Necessary            | https://numpy.org/install/                                            |
 | SciPy        | Necessary            | https://scipy.org/ |
 
-Running Command  
- nohup python experiment_cem.py -d 0 --mode PP > pp.out &  
- nohup python experiment_cem.py -d 1 --mode PN > pn.out &  
- nohup python experiment_cem.py -d 0 --mode PP --smooth 0.01> pp_zo.out &  
- nohup python experiment_cem.py -d 1 --mode PN --smooth 0.01> pn_zo.out &  
- nohup python experiment_cem.py -d 0 --mode PP -s True > pp_mtx.out &  
- nohup python experiment_cem.py -d 1 --mode PN -s True> pn_mtx.out &  
- nohup python experiment_cem.py -d 0 --mode PP -s True --smooth 0.01 > pp_mtx_zo.out &  
- nohup python experiment_cem.py -d 1 --mode PN -s True --smooth 0.01> pn_mtx_zo.out &  
+Running Command: python experiment_cem.py  
+ -n number of samples per class  
+ -t number of iterations  
+ -d devices: -1 cpu, i-th gpu for i>=0  
+ -a choice of algorithm: ao_exp_grad ao_exp_ftrl ao_grad ao_ftrl fista  
+ -b use mini-batch  
+ -g access the first order information  
+ --l1 l1 regularisation   
+ --l2 l2 regularisation  
+ --mode: PP or PN  
+ --kappa: minimum of the loss  
+ --seed: random seed  
+ --path: folder storing the experimental results  
+
