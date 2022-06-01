@@ -7,7 +7,7 @@ In order to run the experiments the following software is necessary:
 | Software     | Importance           | Installation Instruction                                              |
 |--------------|----------------------|-----------------------------------------------------------------------|
 | Python       | Necessary            | https://wiki.python.org/moin/BeginnersGuide/Download                  |
-| MXNet        | Necessary            | https://mxnet.apache.org/versions/1.7.0/get_started?                  |
+| MXNet        | Necessary            | https://mxnet.apache.org/versions/1.7.0/get_started                  |
 | Numpy        | Necessary            | https://numpy.org/install/                                            |
 | SciPy        | Necessary            | https://scipy.org/ |
 
