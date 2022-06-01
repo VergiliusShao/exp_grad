@@ -7,12 +7,12 @@ class AdaFTRL(object):
         self.func = func
         self.func_p=func_p
         self.lam=np.zeros(shape=x0.shape)
+        self.x= np.array(x0)
         self.x[:]= x0
         self.d = self.x.size
         self.D=D
         self.lam=np.zeros(shape=x0.shape)
         self.lam+=epsilon
-        epsilon
         self.eta = eta
         self.theta=np.zeros(shape=self.x.shape)
 
@@ -32,7 +32,7 @@ class AdaFTRL(object):
         self.theta-=g
         
     def md(self,g):
-        h=np.sqrt(self.lam)*self.eta
+        h=np.sqrt(self.lam)
         y =self.theta/h
         y_norm=(lina.norm(y.flatten(),ord=1))
         if y_norm>self.D:

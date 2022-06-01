@@ -45,7 +45,7 @@ class AOFtrl(object):
         alpha = np.sqrt(self.lam) * self.eta
         z = self.x0+(self.theta-(self.t+1.0)*g)/alpha
         x_sgn = np.sign(z)
-        x_val = np.maximum(alpha*np.abs(z)-self.l1*self.beta,0.0)/(alpha+self.l2*self.beta)
+        x_val = np.maximum(alpha*np.abs(z)-self.l1*(self.beta+self.t+1),0.0)/(alpha+self.l2*(self.beta+self.t+1))
         y = x_sgn * x_val
         self.x = np.clip(y, self.lower, self.upper)
         self.y=(self.t/self.beta)*self.x+((self.beta-self.t)/self.beta)*self.y

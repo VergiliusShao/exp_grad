@@ -39,10 +39,10 @@ class AOGrad(object):
        
         
     def md(self,g):
-        alpha = np.sqrt(self.lam) * self.eta
+        alpha = np.sqrt(self.lam)*self.eta
         z = self.x-(self.t*g-self.t*self.h+(self.t+1.0)*g)/alpha
         x_sgn = np.sign(z)
-        x_val = np.maximum(alpha*np.abs(z)-self.l1*self.t,0.0)/(alpha+self.l2*self.t)
+        x_val = np.maximum(alpha*np.abs(z)-self.l1*(self.t+1),0.0)/(alpha+self.l2*(self.t+1))
         y = x_sgn * x_val
         self.x = np.clip(y, self.lower, self.upper)
         self.y=(self.t/self.beta)*self.x+((self.beta-self.t)/self.beta)*self.y

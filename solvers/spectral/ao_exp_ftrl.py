@@ -45,7 +45,7 @@ class AOExpFTRL(object):
         
     def md(self,g):
         beta = 1.0 / self.d
-        alpha = np.sqrt(self.lam)/np.sqrt(np.log(self.d+1.0))*self.eta
+        alpha = np.sqrt(self.lam)/np.sqrt(np.log(self.d+1.0))*self.eta/8
         alpha = np.where(alpha ==0.0, 1e-6, alpha)
         u,_x,v =np.linalg.svd(self.x0,full_matrices=False,compute_uv=True)
         z=np.matmul(u*(alpha*np.log(_x / beta + 1.0))[..., None, :],v) +self.theta-(self.t+1)*g

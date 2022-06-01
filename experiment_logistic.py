@@ -1,3 +1,5 @@
+from cgitb import reset
+from locale import DAY_2
 import numpy as np
 import numpy.linalg as lina
 from loss.logistic import logistic_loss, logistic_grad
@@ -8,20 +10,20 @@ from solvers.ada_hu import AdaHU
 from solvers.ada_exp_ftrl import AdaExpFTRL
 from scipy.optimize import OptimizeResult
 class Sanity_Data_Generator(object):
-	def __init__(self, d = 10000):
-		self.d=d
-		self.w = np.zeros(d)
-		self.w[np.random.permutation(np.arange(d))[:d // 100]] = np.random.uniform(-1, 1, d // 100)
-    
-	def nextbatch(self):
-		x=np.random.uniform(-1, 1, self.d)
-		p=np.random.uniform(0,1)
-		threshold= 1.0 / (1.0 + np.exp(-1 * x.dot(self.w)))
-		if p<=threshold:
-			y=1.0
-		else:
-			y=-1.0
-		return x,y
+    def __init__(self, d = 10000):
+        self.d=d
+        self.w = np.zeros(d)
+        self.w[np.random.permutation(np.arange(d))[:d // 100]] = np.random.uniform(-1, 1, d // 100)
+        
+    def nextbatch(self):
+        x=np.random.uniform(-1, 1, self.d)
+        p=np.random.uniform(0,1)
+        threshold= 1.0 / (1.0 + np.exp(-1 * x.dot(self.w)))
+        if p<=threshold:
+            y=1.0
+        else:
+            y=-1.0
+        return x,y
 
 class Func:
     def __init__(self, data):
@@ -48,7 +50,9 @@ def reg_min(Alg,generator, maxfev=100,callback=None, epoch_size=10):
     regret=[]
     x0=np.zeros(generator.d)
     D= np.linalg.norm((generator.w).flatten(),ord=1)
+    D2= np.linalg.norm((generator.w).flatten(),ord=2)
     print('target l1: ', D)
+    print('target l2: ', D2)
     print('target dim: ', generator.d)
     data=generator.nextbatch()
     func=Func(data)
@@ -76,11 +80,19 @@ def reg_min(Alg,generator, maxfev=100,callback=None, epoch_size=10):
 
 trials=20
 maxfev=10000
-for ALG in [AdaGrad,AdaFTRL,AdaHU,AdaExpGrad,AdaExpFTRL]:
+for ALG in [AdaExpGrad,AdaExpFTRL,AdaGrad,AdaFTRL,AdaHU]:
     regret_avg=np.zeros(maxfev)
+    regret_ary=[]
+    std=0.
     for t in range(trials):
         np.random.seed(48+t)
         generator=Sanity_Data_Generator()
         regret=reg_min(ALG,generator,maxfev=maxfev,callback=callback,epoch_size=100)
+        regret_ary.append(regret)
         regret_avg+=(np.array(regret)/trials)
+    for regret in regret_ary:
+        error=(regret_avg-regret)**2
+        std+=error
+    std=np.sqrt(std/19)
     np.savetxt('logistic_'+ALG.__name__+'.csv', regret_avg, delimiter=",")
+    np.savetxt('logistic_'+ALG.__name__+'std.csv', std, delimiter=",")

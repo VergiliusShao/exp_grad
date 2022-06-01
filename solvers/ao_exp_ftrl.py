@@ -23,6 +23,7 @@ class AOExpFTRL(object):
         self.l2=l2
         self.h=np.zeros(shape=self.x.shape)
         self.theta=np.zeros(shape=self.x.shape)
+        self.D=np.maximum(np.max(np.abs(self.upper)),np.max(np.abs(self.lower)))
         
     def update(self):
         self.t+=1.0
@@ -32,7 +33,6 @@ class AOExpFTRL(object):
         self.h[:]=g
         return self.y
         
-
     def step(self,g):
         self.update_parameters(g)
         self.md(g)
@@ -44,20 +44,19 @@ class AOExpFTRL(object):
         
     def md(self,g):
         beta = 1.0 / self.d
-        alpha = np.sqrt(self.lam)/np.sqrt(np.log(self.d+1.0))*self.eta
+        alpha = np.sqrt(self.lam)/np.sqrt(np.log(self.d*self.D+1))*self.eta
         if alpha==0.0:
-            alpha+=1e-6
+            alpha=1e-6
         z = (np.log(np.abs(self.x0) / beta + 1.0)) * np.sign(self.x0)+(self.theta-(self.t+1)*g) / alpha
         x_sgn = np.sign(z)
         if self.l2 == 0.0:
-            x_val = beta * np.exp(np.maximum(np.abs(z) - self.l1*self.beta / alpha,0.0)) - beta
+            x_val = beta * np.exp(np.maximum(np.abs(z) - self.l1*(self.beta+self.t+1) / alpha,0.0)) - beta
         else:
             a = beta
-            b = self.l2*self.beta / alpha
-            c = np.minimum(self.l1*self.beta / alpha - np.abs(z),0.0)
+            b = self.l2*(self.beta+self.t+1) / alpha
+            c = np.minimum(self.l1*(self.beta+self.t+1)/ alpha - np.abs(z),0.0)
             abc=np.log(a*b)+a*b-c
             x_val = np.where(abc>=15.0,np.log(abc)-np.log(np.log(abc))+np.log(np.log(abc))/np.log(abc), lambertw( np.exp(abc), k=0).real )/b-a
-            #x_val = lambertw(a * b * np.exp(a * b - c), k=0).real / b - a
         y = x_sgn * x_val
         self.x = np.clip(y, self.lower, self.upper)
         self.y=(self.t/self.beta)*self.x+((self.beta-self.t)/self.beta)*self.y

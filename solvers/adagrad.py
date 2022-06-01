@@ -13,7 +13,6 @@ class AdaGrad(object):
         self.D=D
         self.lam=np.zeros(shape=x0.shape)
         self.lam+=epsilon
-        epsilon
         self.t=0.0
         self.eta = eta
         
@@ -39,7 +38,7 @@ class AdaGrad(object):
         
     def sgd(self,g):
         h=np.sqrt(self.lam)
-        y = self.x - self.eta * g/h
+        y = self.x - g/h
         y_norm=(lina.norm(y.flatten(),ord=1))
         if y_norm>self.D:
             a=1.0/np.sqrt(h)

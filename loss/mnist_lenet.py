@@ -40,7 +40,7 @@ class CEM:
     def __init__(self, index=2593,kappa=2,ctx=mx.cpu()):
     # Preparing the dataset:
         self.ctx=ctx
-        self.kappa=mx.nd.array([-kappa])
+        self.kappa=mx.nd.array([-kappa],ctx=self.ctx)
         mnist = mx.test_utils.get_mnist()
         batch_size = 100
         model_file = "LeNet on MNist.model"
@@ -62,8 +62,8 @@ class CEM:
         self.pn_upper-=np_x
         self.pn_lower=np.zeros(shape=self.shape)
         self.pn_lower-=np_x
-        #self.pn_init=(self.pn_lower+self.pn_upper)/2
-        self.pn_init=np.zeros(shape=self.shape)
+        self.pn_init=(self.pn_lower+self.pn_upper)/2
+        #self.pn_init=np.zeros(shape=self.shape)
         #self.pn_init+=np_x
         self.x=nd.array(np_x, ctx = self.ctx)
         self.net=Net() 
@@ -78,7 +78,7 @@ class CEM:
             self.x.attach_grad()
             self.y=self.net(self.x)
             self.label=nd.argmax(self.y)
-            self.mask=mx.nd.array([1 for k in self.y[0]])
+            self.mask=mx.nd.array([1 for k in self.y[0]],ctx=self.ctx)
             self.mask[self.label]=0
             self.correct=(np_y[0]==self.label[0])
 
@@ -86,11 +86,16 @@ class CEM:
     #Validate (Optional)
     net.validate(val_data, ctx)
     '''
-    def pp(self,delta):
-        mx_delta = mx.nd.array(delta)
-        y_delta=(self.net(mx_delta))
-        #y_delta=nd.softmax(self.net(mx_delta))
-        return mx.nd.maximum(mx.nd.max(mx.nd.contrib.boolean_mask(y_delta[0],self.mask))-y_delta[0][self.label],self.kappa).asnumpy()[0]
+    def pp(self,delta):        
+        mx_delta = mx.nd.array(delta,ctx=self.ctx)
+        y_delta_batch=(self.net(mx_delta))
+        attack=[]
+        for y_delta in y_delta_batch:
+            attack.append(mx.nd.maximum(mx.nd.max(mx.nd.contrib.boolean_mask(y_delta,self.mask))-y_delta[self.label],self.kappa).asnumpy()[0])
+        if len(attack)==1:
+            return attack[0]
+        else:
+            return np.array(attack)
 
     def pp_grad(self, delta):
         mx_delta = mx.nd.array(delta)
@@ -103,10 +108,16 @@ class CEM:
         return mx_delta.grad.asnumpy()
     
     def pn(self,delta):
-        mx_delta = mx.nd.array(delta)
-        #y_delta=nd.softmax(self.net(mx_delta+self.x))
-        y_delta=(self.net(mx_delta+self.x))
-        return mx.nd.maximum(y_delta[0][self.label]-mx.nd.max(mx.nd.contrib.boolean_mask(y_delta[0],self.mask)),self.kappa).asnumpy()[0]
+        mx_delta = mx.nd.array(delta,ctx=self.ctx)
+        #mx_delta = mx.nd.array(delta.reshape(-1,3,32,32),ctx=self.ctx)
+        y_delta_batch=(self.net(self.x+mx_delta))
+        attack=[]
+        for y_delta in y_delta_batch:
+            attack.append(mx.nd.maximum(y_delta[self.label]-mx.nd.max(mx.nd.contrib.boolean_mask(y_delta,self.mask)),self.kappa).asnumpy()[0])
+        if len(attack)==1:
+            return attack[0]
+        else:
+            return np.array(attack)
 
     def pn_grad(self, delta):
         mx_delta = mx.nd.array(delta)

@@ -12,11 +12,13 @@ class AdaExpFTRL(object):
         self.lam=0.0
         self.t=0.0
         self.theta=np.array(x0)
+        self.h= np.zeros(shape=x0.shape)
         
     def update(self):
         self.t=self.t+1.0
         g=self.func_p(self.x)
         self.step(g)
+        self.h[:]=g
         return self.x
         
        
@@ -29,7 +31,7 @@ class AdaExpFTRL(object):
         self.md(g)
 
     def update_parameters(self,g):
-        self.lam+=(lina.norm(g.flatten(),ord=np.inf)**2)
+        self.lam+=(lina.norm((g-self.h).flatten(),ord=np.inf)**2)
         self.theta-=g
         #self.lam+=g**2
        
@@ -37,7 +39,7 @@ class AdaExpFTRL(object):
     def md(self,g):
         beta=1.0/self.d
         alpha=np.sqrt(self.lam)/np.sqrt(np.log(self.d))
-        z=self.theta/alpha
+        z=(self.theta-g)/alpha
         x_sgn=np.sign(z)
         x_val=beta*np.exp(np.abs(z))-beta
         #y= np.sinh(np.arcsinh(self.x*self.d)-g/np.sqrt(self.lam))

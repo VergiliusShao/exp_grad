@@ -23,7 +23,7 @@ class CEM:
         dataset= gluon.data.vision.CIFAR10(train=False).transform_first(transform_test)
         self.x=dataset[index][0].copyto(self.ctx).expand_dims(axis=0) 
         np_y=dataset[index][1]
-        np_x=self.x.asnumpy().reshape(1,96,32)
+        np_x=self.x.asnumpy()
         #self.ctx = [mx.cpu()]
         self.kappa=mx.nd.array([-kappa],ctx=self.ctx)
 
@@ -43,14 +43,13 @@ class CEM:
         self.pp_lower=np.zeros(shape=self.shape)
         self.pp_lower=np.minimum(np_x,0.0)
         self.pp_init=np.zeros(shape=self.shape)
-        #self.pp_init+=(np_x/2)
-        
-        self.pn_upper=(np.ones(shape=(1,3,32,32)).T/std.T).T.reshape(1,96,32)
+       
+        self.pn_upper=((np.ones(shape=(1,3,32,32)).T-mean.T)/std.T).T
         self.pn_upper-=np_x
-        self.pn_lower=(-np.ones(shape=(1,3,32,32)).T/std.T).T.reshape(1,96,32)
+        self.pn_lower=((np.zeros(shape=(1,3,32,32)).T-mean.T)/std.T).T
         self.pn_lower-=np_x
         self.pn_init=np.zeros(shape=self.shape)
-        #self.pn_init=(self.pn_upper+self.pn_lower)/2
+       
         self.y=self.net(self.x)
         self.label=nd.argmax(self.y)
         self.mask=mx.nd.array([1 for k in self.y[0]],ctx=self.ctx)
@@ -68,7 +67,6 @@ class CEM:
             return attack[0]
         else:
             return np.array(attack)
-        #return mx.nd.maximum(mx.nd.max(mx.nd.contrib.boolean_mask(y_delta[0],self.mask))-y_delta[0][self.label],self.kappa).asnumpy()[0]
 
     def pp_grad(self, delta):
         mx_delta = mx.nd.array(delta.reshape(-1,3,32,32),ctx=self.ctx)
@@ -77,7 +75,7 @@ class CEM:
             y_delta=(self.net(mx_delta))
             pos=mx.nd.maximum(mx.nd.max(mx.nd.contrib.boolean_mask(y_delta[0],self.mask))-y_delta[0][self.label],self.kappa)
         pos.backward()
-        return mx_delta.grad.asnumpy().reshape(1,96,32)
+        return mx_delta.grad.asnumpy()
 
     def pn(self,delta):
         mx_delta = mx.nd.array(delta.reshape(-1,3,32,32),ctx=self.ctx)
@@ -89,9 +87,6 @@ class CEM:
             return attack[0]
         else:
             return np.array(attack)
-        #mx_delta = mx.nd.array(delta,ctx=self.ctx)
-        #y_delta=(self.net(mx_delta+self.x))
-        #return mx.nd.maximum(y_delta[0][self.label]-mx.nd.max(mx.nd.contrib.boolean_mask(y_delta[0],self.mask)),self.kappa).asnumpy()[0]
 
     def pn_grad(self, delta):
         mx_delta = mx.nd.array(delta.reshape(-1,3,32,32),ctx=self.ctx)
@@ -100,7 +95,7 @@ class CEM:
             y_delta=(self.net(mx_delta+self.x))
             pos=mx.nd.maximum(y_delta[0][self.label]-mx.nd.max(mx.nd.contrib.boolean_mask(y_delta[0],self.mask)),self.kappa)
         pos.backward()
-        return mx_delta.grad.asnumpy().reshape(1,96,32)
+        return mx_delta.grad.asnumpy()
     
 
 transform_test = transforms.Compose([
@@ -151,7 +146,30 @@ class Grad_2p:
             batch_v=np.append(batch_v,v, axis=0)
         batch_y=self.func(batch)
         tilde_f_x_r= batch_y[0]
-        for i in range(1,self.n):
+        for i in range(1,self.n+1):
             tilde_f_x_l= batch_y[i]
             g[0]+=d/self.delta/self.n*(tilde_f_x_l-tilde_f_x_r)*batch_v[i]
+        return g
+
+class Grad_2p_Rad:
+    def __init__(self, func, n,delta):
+        self.func=func
+        self.n=n
+        self.delta=delta
+    def __call__(self, x):
+        d=x.size
+        batch=np.zeros(shape=x.shape)
+        batch_v=np.zeros(shape=x.shape)
+        batch[:]=x
+        batch_v[:]=x
+        g=np.zeros(shape=x.shape)
+        for i in range(self.n):
+            v= np.random.choice([-1.0,1.0],size=x.shape,p=[0.5,0.5])
+            batch=np.append(batch,x+self.delta*v, axis=0)
+            batch_v=np.append(batch_v,v, axis=0)
+        batch_y=self.func(batch)
+        tilde_f_x_r= batch_y[0]
+        for i in range(1,self.n+1):
+            tilde_f_x_l= batch_y[i]
+            g[0]+=1.0/self.delta/self.n*(tilde_f_x_l-tilde_f_x_r)*batch_v[i]
         return g

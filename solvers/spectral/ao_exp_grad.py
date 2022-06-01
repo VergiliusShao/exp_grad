@@ -40,7 +40,7 @@ class AOExpGrad(object):
         
     def md(self,g):
         beta = 1.0 / self.d
-        alpha = np.sqrt(self.lam)/np.sqrt(np.log(self.d))*self.eta
+        alpha = np.sqrt(self.lam)/np.sqrt(np.log(self.d+1.0))*self.eta
         alpha = np.where(alpha ==0.0, 1e-6, alpha)
         u,_x,v =np.linalg.svd(self.x,full_matrices=False,compute_uv=True)
         z=np.matmul(u*(alpha*np.log(_x / beta + 1.0))[..., None, :],v) - self.t*g+self.t*self.h-(self.t+1)*g

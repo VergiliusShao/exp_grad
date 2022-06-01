@@ -20,7 +20,8 @@ class AOExpGrad(object):
         self.l1=l1
         self.l2=l2
         self.h=np.zeros(shape=self.x.shape)
-        
+        self.D=np.maximum(np.max(np.abs(self.upper)),np.max(np.abs(self.lower)))
+
     def update(self):
         self.t+=1.0
         self.beta+=self.t
@@ -35,24 +36,22 @@ class AOExpGrad(object):
 
     def update_parameters(self,g):
         self.lam+=((self.t*lina.norm((g-self.h).flatten(),ord=np.inf))**2)
-       
         
     def md(self,g):
         beta = 1.0 / self.d
-        alpha = np.sqrt(self.lam)/np.sqrt(np.log(self.d))*self.eta
+        alpha = np.sqrt(self.lam)/np.sqrt(np.log(self.d*self.D+1))*self.eta
         if alpha==0.0:
             alpha+=1e-6
         z=(np.log(np.abs(self.x) / beta + 1.0)) * np.sign(self.x) - (self.t*g-self.t*self.h+(self.t+1)*g) / alpha
         x_sgn = np.sign(z)
         if self.l2 == 0.0:
-            x_val = beta * np.exp(np.maximum(np.abs(z) - self.l1*self.t / alpha,0.0)) - beta
+            x_val = beta * np.exp(np.maximum(np.abs(z) - self.l1*(self.t+1) / alpha,0.0)) - beta
         else:
             a = beta
-            b = self.l2*self.t / alpha
-            c = np.minimum(self.l1*self.t / alpha - np.abs(z),0.0)
+            b = self.l2*(self.t+1)/ alpha
+            c = np.minimum(self.l1*(self.t+1) / alpha - np.abs(z),0.0)
             abc=-c+np.log(a*b)+a*b
             x_val = np.where(abc>=15.0,np.log(abc)-np.log(np.log(abc))+np.log(np.log(abc))/np.log(abc), lambertw( np.exp(abc), k=0).real )/b-a
-            #x_val = lambertw(a * b * np.exp(a * b - c), k=0).real / b - a
         y = x_sgn * x_val
         self.x = np.clip(y, self.lower, self.upper)
         self.y=(self.t/self.beta)*self.x+((self.beta-self.t)/self.beta)*self.y
